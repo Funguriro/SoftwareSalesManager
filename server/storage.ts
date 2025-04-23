@@ -10,7 +10,7 @@ import {
 } from "@shared/schema";
 
 import { db } from "./db";
-import { eq, and, gte, desc, lt, sql } from "drizzle-orm";
+import { eq, and, gte, desc, lt, sql, or } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
 import { pool } from "./db";
@@ -388,8 +388,9 @@ export class DatabaseStorage implements IStorage {
       .select({ count: sql`count(*)` })
       .from(tickets)
       .where(
-        and(
-          eq(tickets.status, 'new').or(eq(tickets.status, 'in_progress'))
+        or(
+          eq(tickets.status, 'new'),
+          eq(tickets.status, 'in_progress')
         )
       );
     return parseInt(result[0].count as string);
