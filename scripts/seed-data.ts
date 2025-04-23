@@ -57,13 +57,13 @@ async function seedData() {
     const [insertedClient] = await db.insert(clients).values({
       userId: clientUser.id,
       companyName: "Axis Solutions",
-      contactEmail: "contact@axissolutions.com",
-      phone: "+1234567890",
       address: "123 Business Ave, Tech Park",
       city: "San Francisco",
       state: "CA",
-      zipCode: "94105",
+      postalCode: "94105",
       country: "US",
+      phoneNumber: "+1234567890",
+      website: "https://axissolutions.example.com",
       notes: "Important enterprise client"
     }).returning();
     
@@ -278,6 +278,6 @@ seedData()
     console.error("Error seeding data:", error);
   })
   .finally(() => {
-    // Close db connection when done
-    db.end();
+    // Pool connection will be closed by the application
+    process.exit(0);
   });
