@@ -84,8 +84,10 @@ export default function ClientDetails() {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch client details
-  const { data: client, isLoading: isClientLoading } = useQuery<Client>({
+  const { data: client, isLoading: isClientLoading, error: clientError } = useQuery<Client>({
     queryKey: [`/api/clients/${clientId}`],
+    enabled: clientId > 0,
+    staleTime: 0, // Force refresh
   });
 
   // Fetch user associated with client
@@ -210,6 +212,67 @@ export default function ClientDetails() {
     );
   }
 
+  // Handle invalid client ID (NaN or 0)
+  if (isNaN(parsedId) || clientId === 0) {
+    return (
+      <div className="min-h-screen flex flex-col md:flex-row bg-neutral-100">
+        <Sidebar />
+        <main className="flex-1 p-6 md:ml-64">
+          <div className="flex items-center mb-6">
+            <Link href="/clients">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Clients
+              </Button>
+            </Link>
+          </div>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <h2 className="text-2xl font-semibold mb-2">Invalid Client ID</h2>
+              <p className="text-neutral-500 mb-6">
+                The client ID is invalid. Please return to the clients list and select a valid client.
+              </p>
+              <Button asChild>
+                <Link href="/clients">Return to Clients</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  // Handle API errors
+  if (clientError) {
+    return (
+      <div className="min-h-screen flex flex-col md:flex-row bg-neutral-100">
+        <Sidebar />
+        <main className="flex-1 p-6 md:ml-64">
+          <div className="flex items-center mb-6">
+            <Link href="/clients">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Clients
+              </Button>
+            </Link>
+          </div>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <h2 className="text-2xl font-semibold mb-2">Error Loading Client</h2>
+              <p className="text-neutral-500 mb-6">
+                {clientError instanceof Error ? clientError.message : "An unknown error occurred while loading client data."}
+              </p>
+              <Button asChild>
+                <Link href="/clients">Return to Clients</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  // Client data not found
   if (!client) {
     return (
       <div className="min-h-screen flex flex-col md:flex-row bg-neutral-100">
