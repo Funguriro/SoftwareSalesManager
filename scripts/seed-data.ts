@@ -147,12 +147,10 @@ async function seedData() {
     const [monthlyLicense] = await db.insert(licenses).values({
       subscriptionId: monthlySubscriptionId,
       licenseKey: generateLicenseKey(),
-      issuedDate: currentDate,
+      activationDate: currentDate,
       expirationDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDate()), // 1 month from now
       status: "active",
-      seats: 10,
-      restrictions: "Standard usage terms",
-      notes: "Monthly license for Axis Solutions"
+      notificationsSent: 0
     }).returning();
 
     monthlyLicenseId = monthlyLicense.id;
@@ -171,12 +169,10 @@ async function seedData() {
     const [quarterlyLicense] = await db.insert(licenses).values({
       subscriptionId: quarterlySubscriptionId,
       licenseKey: generateLicenseKey(),
-      issuedDate: currentDate,
+      activationDate: currentDate,
       expirationDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + 3, currentDate.getDate()), // 3 months from now
       status: "active",
-      seats: 25,
-      restrictions: "Standard usage terms",
-      notes: "Quarterly license for Axis Solutions"
+      notificationsSent: 0
     }).returning();
 
     quarterlyLicenseId = quarterlyLicense.id;
@@ -210,7 +206,9 @@ async function seedData() {
       issueDate: currentDate,
       dueDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 15), // 15 days from now
       amount: 1200,
-      status: "paid",
+      tax: 120,
+      totalAmount: 1320,
+      isPaid: true,
       notes: "Monthly subscription invoice for Axis Solutions"
     }).returning();
 
@@ -222,7 +220,7 @@ async function seedData() {
       clientId: clientId,
       invoiceId: monthlyInvoiceId,
       transactionDate: currentDate,
-      amount: 1200,
+      amount: "1200",
       paymentMethod: "credit_card",
       status: "completed",
       notes: "Payment for monthly subscription"
@@ -247,7 +245,9 @@ async function seedData() {
       issueDate: currentDate,
       dueDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 30), // 30 days from now
       amount: 3300,
-      status: "paid",
+      tax: 330,
+      totalAmount: 3630,
+      isPaid: true,
       notes: "Quarterly subscription invoice for Axis Solutions"
     }).returning();
 
@@ -259,7 +259,7 @@ async function seedData() {
       clientId: clientId,
       invoiceId: quarterlyInvoiceId,
       transactionDate: currentDate,
-      amount: 3300,
+      amount: "3300",
       paymentMethod: "bank_transfer",
       status: "completed",
       notes: "Payment for quarterly subscription"
