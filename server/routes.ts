@@ -185,6 +185,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/clients/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // Check for valid ID
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid client ID" });
+      }
+      
       const client = await storage.getClient(id);
       
       if (!client) {
@@ -193,6 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(client);
     } catch (error) {
+      console.error("Error fetching client:", error);
       res.status(500).json({ message: "Error fetching client" });
     }
   });

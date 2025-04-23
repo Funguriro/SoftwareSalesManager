@@ -78,7 +78,8 @@ interface Ticket {
 
 export default function ClientDetails() {
   const { id } = useParams<{ id: string }>();
-  const clientId = parseInt(id);
+  const parsedId = id ? parseInt(id) : NaN;
+  const clientId = !isNaN(parsedId) ? parsedId : 0;
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
 
