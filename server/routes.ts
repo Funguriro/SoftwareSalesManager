@@ -372,24 +372,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/licenses", isAuthenticated, async (req, res) => {
     try {
       const subscriptionId = req.query.subscriptionId ? parseInt(req.query.subscriptionId as string) : undefined;
+      const clientId = req.query.clientId ? parseInt(req.query.clientId as string) : undefined;
       
-      if (!subscriptionId) {
-        return res.status(400).json({ message: "Subscription ID required" });
-      }
+      let licenses = [];
       
-      const licenses = await storage.getLicensesBySubscription(subscriptionId);
-      
-      // Check if user has access to these licenses
-      if (req.user.role === 'client') {
-        const subscription = await storage.getSubscription(subscriptionId);
-        if (!subscription) {
-          return res.status(404).json({ message: "Subscription not found" });
-        }
+      if (subscriptionId) {
+        licenses = await storage.getLicensesBySubscription(subscriptionId);
         
-        const client = await storage.getClientByUserId(req.user.id);
-        if (!client || client.id !== subscription.clientId) {
-          return res.status(403).json({ message: "Access denied" });
+        // Check if user has access to these licenses
+        if (req.user.role === 'client') {
+          const subscription = await storage.getSubscription(subscriptionId);
+          if (!subscription) {
+            return res.status(404).json({ message: "Subscription not found" });
+          }
+          
+          const client = await storage.getClientByUserId(req.user.id);
+          if (!client || client.id !== subscription.clientId) {
+            return res.status(403).json({ message: "Access denied" });
+          }
         }
+      } else if (clientId) {
+        // Get all subscriptions for this client
+        const clientSubscriptions = await storage.getSubscriptionsByClient(clientId);
+        
+        // Get licenses for each subscription
+        licenses = (await Promise.all(
+          clientSubscriptions.map(subscription => 
+            storage.getLicensesBySubscription(subscription.id)
+          )
+        )).flat();
+        
+        // Check if user has access to these licenses
+        if (req.user.role === 'client') {
+          const client = await storage.getClientByUserId(req.user.id);
+          if (!client || client.id !== clientId) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        }
+      } else if (req.user.role === 'client') {
+        // For client users without specified clientId, get their own licenses
+        const client = await storage.getClientByUserId(req.user.id);
+        if (client) {
+          const clientSubscriptions = await storage.getSubscriptionsByClient(client.id);
+          licenses = (await Promise.all(
+            clientSubscriptions.map(subscription => 
+              storage.getLicensesBySubscription(subscription.id)
+            )
+          )).flat();
+        }
+      } else if (['admin', 'sales', 'support'].includes(req.user.role)) {
+        // Admin users can get all licenses if no filter is provided
+        // This would require an additional method, for now just return empty array
+        licenses = [];
+      } else {
+        return res.status(400).json({ message: "Either client ID or subscription ID is required" });
       }
       
       res.json(licenses);

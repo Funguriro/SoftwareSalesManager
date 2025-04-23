@@ -99,7 +99,7 @@ export default function ClientDetails() {
     enabled: !!clientId,
   });
 
-  // Fetch client's licenses (based on subscriptions)
+  // Fetch client's licenses
   const { data: licenses, isLoading: isLicensesLoading } = useQuery<License[]>({
     queryKey: [`/api/licenses?clientId=${clientId}`],
     enabled: !!clientId,
