@@ -45,10 +45,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard
   app.get("/api/dashboard/stats", isAuthenticated, async (req, res) => {
     try {
-      const clientCount = await storage.getClientCount();
-      const activeLicensesCount = await storage.getActiveLicensesCount();
-      const openTicketsCount = await storage.getOpenTicketsCount();
-      const monthlyRevenue = await storage.getMonthlyRevenue();
+      // Using try/catch for each call to identify which one is causing the issue
+      let clientCount = 0;
+      let activeLicensesCount = 0;
+      let openTicketsCount = 0;
+      let monthlyRevenue = 0;
+      
+      try {
+        clientCount = await storage.getClientCount();
+      } catch (err) {
+        console.error("Error getting client count:", err);
+      }
+      
+      try {
+        activeLicensesCount = await storage.getActiveLicensesCount();
+      } catch (err) {
+        console.error("Error getting active licenses count:", err);
+      }
+      
+      try {
+        openTicketsCount = await storage.getOpenTicketsCount();
+      } catch (err) {
+        console.error("Error getting open tickets count:", err);
+      }
+      
+      try {
+        monthlyRevenue = await storage.getMonthlyRevenue();
+      } catch (err) {
+        console.error("Error getting monthly revenue:", err);
+      }
 
       res.json({
         totalClients: clientCount,
@@ -57,6 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         monthlyRevenue: monthlyRevenue
       });
     } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
       res.status(500).json({ message: "Error fetching dashboard stats" });
     }
   });
